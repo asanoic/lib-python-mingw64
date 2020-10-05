@@ -1,0 +1,6 @@
+[submodule "python"]
+	path = python
+	url = https://github.com/python/cpython.git
+[submodule "zlib"]
+	path = zlib
+	url = https://github.com/madler/zlib.git
