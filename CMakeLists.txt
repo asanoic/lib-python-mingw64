@@ -258,7 +258,7 @@ list(APPEND patch-list
 
 file(GLOB python-zip-list LIST_DIRECTORIES true RELATIVE "${python-path}/lib" "${python-path}/lib/*")
 add_custom_target(copy-python-zip ALL
-    COMMAND ${CMAKE_COMMAND} -E tar cvf "${CMAKE_CURRENT_BINARY_DIR}/${lib-name}.zip" --format=zip ${python-zip-list}
+    COMMAND ${CMAKE_COMMAND} -E tar cf "${CMAKE_CURRENT_BINARY_DIR}/${lib-name}.zip" --format=zip ${python-zip-list}
     WORKING_DIRECTORY "${python-path}/lib"
 )
 
