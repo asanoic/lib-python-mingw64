@@ -4,15 +4,16 @@ project(lib-python-mingw64)
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 set(major-version 3)
-set(minor-version 8)
+set(minor-version 9)
 
 # start here
 
 set(lib-name "python${major-version}${minor-version}")
 set(dll-name "python${major-version}.dll")
 
-set(python-path "${CMAKE_CURRENT_LIST_DIR}/python")
-set(zlib-path "${CMAKE_CURRENT_LIST_DIR}/zlib")
+set(pwd "${CMAKE_CURRENT_LIST_DIR}")
+set(python-path "${pwd}/python")
+set(zlib-path "${pwd}/zlib")
 
 list(APPEND src
     "${python-path}/Modules/_abc.c"
@@ -46,7 +47,6 @@ list(APPEND src
     "${python-path}/Modules/errnomodule.c"
     "${python-path}/Modules/faulthandler.c"
     "${python-path}/Modules/gcmodule.c"
-    "${python-path}/Modules/hashtable.c"
     "${python-path}/Modules/itertoolsmodule.c"
     "${python-path}/Modules/main.c"
     "${python-path}/Modules/mathmodule.c"
@@ -55,6 +55,7 @@ list(APPEND src
     "${python-path}/Modules/_opcode.c"
     "${python-path}/Modules/_operator.c"
     "${python-path}/Modules/parsermodule.c"
+    "${python-path}/Modules/_peg_parser.c"
     "${python-path}/Modules/posixmodule.c"
     "${python-path}/Modules/rotatingtree.c"
     "${python-path}/Modules/sha1module.c"
@@ -104,6 +105,7 @@ list(APPEND src
     "${python-path}/Objects/floatobject.c"
     "${python-path}/Objects/frameobject.c"
     "${python-path}/Objects/funcobject.c"
+    "${python-path}/Objects/genericaliasobject.c"
     "${python-path}/Objects/genobject.c"
     "${python-path}/Objects/interpreteridobject.c"
     "${python-path}/Objects/iterobject.c"
@@ -135,6 +137,10 @@ list(APPEND src
     "${python-path}/Parser/parsetok.c"
     "${python-path}/Parser/tokenizer.c"
     "${python-path}/Parser/token.c"
+    "${python-path}/Parser/pegen/pegen.c"
+    "${python-path}/Parser/pegen/parse.c"
+    "${python-path}/Parser/pegen/parse_string.c"
+    "${python-path}/Parser/pegen/peg_api.c"
     "${python-path}/PC/invalid_parameter_handler.c"
     "${python-path}/PC/winreg.c"
     "${python-path}/PC/config.c"
@@ -167,6 +173,7 @@ list(APPEND src
     "${python-path}/Python/getversion.c"
     "${python-path}/Python/graminit.c"
     "${python-path}/Python/hamt.c"
+    "${python-path}/Python/hashtable.c"
     "${python-path}/Python/import.c"
     "${python-path}/Python/importdl.c"
     "${python-path}/Python/initconfig.c"
@@ -222,14 +229,28 @@ target_include_directories(${lib-name} PUBLIC
     "${zlib-path}"
 )
 
-target_compile_definitions(${lib-name} PUBLIC _Py_HAVE_ZLIB Py_BUILD_CORE Py_BUILD_CORE_BUILTIN Py_ENABLE_SHARED _WIN32_WINNT=0x0602 MS_WIN64 "PY3_DLLNAME=\"${dll-name}\"")
+target_compile_definitions(${lib-name} PUBLIC
+    _Py_HAVE_ZLIB
+    Py_BUILD_CORE
+    Py_BUILD_CORE_BUILTIN
+    Py_ENABLE_SHARED
+    _WIN32_WINNT=0x0602
+    MS_WIN64
+    "PY3_DLLNAME=L\"${dll-name}\""
+    "MS_DLL_ID=\"Win10\""
+)
 target_compile_options(${lib-name} PUBLIC "-fno-keep-inline-dllexport" "-fexceptions" "-mthreads")
 
 target_link_options(${lib-name} PUBLIC "-Wl,--exclude-all-symbols")
-target_link_libraries(${lib-name} PUBLIC -lversion -lshlwapi -lws2_32)
+target_link_libraries(${lib-name} PUBLIC "-L${CMAKE_CURRENT_BINARY_DIR}" -lversion -lshlwapi -lws2_32 -lpathcch)
+
+add_custom_target(pathcch ALL
+    COMMAND dlltool "-d" "${pwd}/pathcch.def" "-l" "${CMAKE_CURRENT_BINARY_DIR}/libpathcch.a"
+)
+add_dependencies("${lib-name}" pathcch)
 
 list(APPEND patch-list
-    "posixmodule.awk" "${python-path}/Modules/posixmodule.c"
+    "${pwd}/posixmodule.awk" "${python-path}/Modules/posixmodule.c"
 )
 
 find_program(gawk-app gawk REQUIRED PATHS "${SEARCH_PATH}")
@@ -240,9 +261,10 @@ while(1)
     endif()
     list(POP_FRONT patch-list awk-file)
     list(POP_FRONT patch-list patch-file)
-    add_custom_target("${awk-file}" ALL
+    string(REGEX REPLACE "[^A-Za-z0-9]" "-" target-name "${awk-file}")
+    add_custom_target("${target-name}" ALL
         COMMAND ${gawk-app} "-f" "${awk-file}" "${patch-file}" ">" "${awk-file}-tmp"
         COMMAND ${CMAKE_COMMAND} -E rename "${awk-file}-tmp" "${patch-file}"
     )
-    add_dependencies("${lib-name}" "${awk-file}")
+    add_dependencies("${lib-name}" "${target-name}")
 endwhile()

@@ -8,4 +8,5 @@
 /HAVE_OPENDIR/ || \
 /HAVE_WAIT/    || \
 /HAVE_TTYNAME/ ) { printf "// "; }
+/stdio/ { print "#include \"osdefs.h\""; }
 1
