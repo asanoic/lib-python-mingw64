@@ -223,13 +223,16 @@ set_target_properties(${lib-name} PROPERTIES PREFIX "")
 
 target_include_directories(${lib-name} PUBLIC
     "${python-path}/include"
+    "${python-path}/PC"
+)
+
+target_include_directories(${lib-name} PRIVATE
     "${python-path}/include/internal"
     "${python-path}/include/cpython"
-    "${python-path}/PC"
     "${zlib-path}"
 )
 
-target_compile_definitions(${lib-name} PUBLIC
+target_compile_definitions(${lib-name} PRIVATE
     _Py_HAVE_ZLIB
     Py_BUILD_CORE
     Py_BUILD_CORE_BUILTIN
@@ -239,10 +242,10 @@ target_compile_definitions(${lib-name} PUBLIC
     "PY3_DLLNAME=L\"${dll-name}\""
     "MS_DLL_ID=\"Win10\""
 )
-target_compile_options(${lib-name} PUBLIC "-fno-keep-inline-dllexport" "-fexceptions" "-mthreads")
+target_compile_options(${lib-name} PRIVATE "-fno-keep-inline-dllexport" "-fexceptions" "-mthreads")
 
-target_link_options(${lib-name} PUBLIC "-Wl,--exclude-all-symbols")
-target_link_libraries(${lib-name} PUBLIC "-L${CMAKE_CURRENT_BINARY_DIR}" -lversion -lshlwapi -lws2_32 -lpathcch)
+target_link_options(${lib-name} PRIVATE "-Wl,--exclude-all-symbols")
+target_link_libraries(${lib-name} PRIVATE "-L${CMAKE_CURRENT_BINARY_DIR}" -lversion -lshlwapi -lws2_32 -lpathcch)
 
 add_custom_target(pathcch ALL
     COMMAND dlltool "-d" "${pwd}/pathcch.def" "-l" "${CMAKE_CURRENT_BINARY_DIR}/libpathcch.a"
