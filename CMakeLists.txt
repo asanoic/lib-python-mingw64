@@ -227,3 +227,22 @@ target_compile_options(${lib-name} PUBLIC "-fno-keep-inline-dllexport" "-fexcept
 
 target_link_options(${lib-name} PUBLIC "-Wl,--exclude-all-symbols")
 target_link_libraries(${lib-name} PUBLIC -lversion -lshlwapi -lws2_32)
+
+list(APPEND patch-list
+    "posixmodule.awk" "${python-path}/Modules/posixmodule.c"
+)
+
+find_program(gawk-app gawk REQUIRED PATHS "${SEARCH_PATH}")
+while(1)
+    list(LENGTH patch-list has-item)
+    if (NOT ${has-item})
+        break()
+    endif()
+    list(POP_FRONT patch-list awk-file)
+    list(POP_FRONT patch-list patch-file)
+    add_custom_target("${awk-file}" ALL
+        COMMAND ${gawk-app} "-f" "${awk-file}" "${patch-file}" ">" "${awk-file}-tmp"
+        COMMAND ${CMAKE_COMMAND} -E rename "${awk-file}-tmp" "${patch-file}"
+    )
+    add_dependencies("${lib-name}" "${awk-file}")
+endwhile()
