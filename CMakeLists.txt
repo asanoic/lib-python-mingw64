@@ -252,17 +252,22 @@ add_custom_target(pathcch ALL
 )
 add_dependencies("${lib-name}" pathcch)
 
-list(APPEND patch-list
-    "${pwd}/posixmodule.awk" "${python-path}/Modules/posixmodule.c"
-)
-
 file(GLOB python-zip-list LIST_DIRECTORIES true RELATIVE "${python-path}/lib" "${python-path}/lib/*")
 add_custom_target(copy-python-zip ALL
     COMMAND ${CMAKE_COMMAND} -E tar cf "${CMAKE_CURRENT_BINARY_DIR}/${lib-name}.zip" --format=zip ${python-zip-list}
     WORKING_DIRECTORY "${python-path}/lib"
 )
 
+
+list(APPEND patch-list
+    "${pwd}/posixmodule.awk" "${python-path}/Modules/posixmodule.c"
+)
+
+if(NOT SEARCH_PATH)
+    set(SEARCH_PATH "Q:/msys2/usr/bin")
+endif()
 find_program(gawk-app gawk REQUIRED PATHS "${SEARCH_PATH}")
+
 while(1)
     list(LENGTH patch-list has-item)
     if (NOT ${has-item})
