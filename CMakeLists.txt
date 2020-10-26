@@ -245,12 +245,7 @@ target_compile_definitions(${lib-name} PRIVATE
 target_compile_options(${lib-name} PRIVATE "-fno-keep-inline-dllexport" "-fexceptions" "-mthreads")
 
 target_link_options(${lib-name} PRIVATE "-Wl,--exclude-all-symbols")
-target_link_libraries(${lib-name} PRIVATE "-L${CMAKE_CURRENT_BINARY_DIR}" -lversion -lshlwapi -lws2_32 -lpathcch)
-
-add_custom_target(pathcch ALL
-    COMMAND dlltool "-d" "${pwd}/pathcch.def" "-l" "${CMAKE_CURRENT_BINARY_DIR}/libpathcch.a"
-)
-add_dependencies("${lib-name}" pathcch)
+target_link_libraries(${lib-name} PRIVATE "-L${CMAKE_CURRENT_BINARY_DIR}" -lversion -lshlwapi -lws2_32 -lmincore)
 
 file(GLOB python-zip-list LIST_DIRECTORIES true RELATIVE "${python-path}/lib" "${python-path}/lib/*")
 add_custom_target(copy-python-zip ALL
