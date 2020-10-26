@@ -1,0 +1,6 @@
+LIBRARY api-ms-win-core-path-l1-1-0.dll
+
+EXPORTS
+
+PathCchCanonicalizeEx@16
+PathCchCombineEx@20

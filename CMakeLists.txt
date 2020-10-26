@@ -245,14 +245,23 @@ target_compile_definitions(${lib-name} PRIVATE
 target_compile_options(${lib-name} PRIVATE "-fno-keep-inline-dllexport" "-fexceptions" "-mthreads")
 
 target_link_options(${lib-name} PRIVATE "-Wl,--exclude-all-symbols")
-target_link_libraries(${lib-name} PRIVATE "-L${CMAKE_CURRENT_BINARY_DIR}" -lversion -lshlwapi -lws2_32 -lmincore)
+target_link_libraries(${lib-name} PRIVATE -lversion -lshlwapi -lws2_32)
+
+if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+    target_link_libraries(${lib-name} PRIVATE -lmincore)
+else()
+    target_link_libraries(${lib-name} PRIVATE "-L${CMAKE_CURRENT_BINARY_DIR}" -lpathcch)
+    add_custom_target(pathcch ALL
+        COMMAND dlltool "-d" "${pwd}/pathcch.def" "-k" "-l" "${CMAKE_CURRENT_BINARY_DIR}/libpathcch.a"
+    )
+    add_dependencies("${lib-name}" pathcch)
+endif()
 
 file(GLOB python-zip-list LIST_DIRECTORIES true RELATIVE "${python-path}/lib" "${python-path}/lib/*")
 add_custom_target(copy-python-zip ALL
     COMMAND ${CMAKE_COMMAND} -E tar cf "${CMAKE_CURRENT_BINARY_DIR}/${lib-name}.zip" --format=zip ${python-zip-list}
     WORKING_DIRECTORY "${python-path}/lib"
 )
-
 
 list(APPEND patch-list
     "${pwd}/posixmodule.awk" "${python-path}/Modules/posixmodule.c"
