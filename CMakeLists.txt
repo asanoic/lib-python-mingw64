@@ -265,6 +265,8 @@ add_custom_target(copy-python-zip ALL
 
 list(APPEND patch-list
     "${pwd}/posixmodule.awk" "${python-path}/Modules/posixmodule.c"
+    "${pwd}/localemodule.awk" "${python-path}/Modules/_localemodule.c"
+    "${pwd}/fileutils.awk" "${python-path}/Python/fileutils.c"
 )
 
 if(NOT SEARCH_PATH)
