@@ -6,7 +6,7 @@ build python library for embedded python using mingw-w64
 
 
 ```
-   git clone https://github.com/asanoic/pythonjs.git --recursive
+   git clone https://github.com/asanoic/lib-python-mingw64.git --recursive
    cmake [lib-python-mingw64-path] -DSEARCH_PATH=[gawk-path]
    cmake --build .
 ```
